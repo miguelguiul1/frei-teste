@@ -1,0 +1,82 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Mapeamento dos tokens do Figma para as variáveis do shadcn/ui */
+    --background: 0 0% 100%;
+    --foreground: 0 0% 0%;
+    --card: 0 0% 100%;
+    --card-foreground: 221 94% 26%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 221 94% 26%;
+    --primary: 221 94% 26%; /* #042A7E */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 221 64% 48%; /* #2C5EC9 */
+    --secondary-foreground: 0 0% 100%;
+    --muted: 205 100% 92%; /* #D8EFFF */
+    --muted-foreground: 221 30% 40%;
+    --accent: 205 100% 92%;
+    --accent-foreground: 221 94% 26%;
+    --destructive: 0 72% 45%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 221 30% 85%;
+    --input: 221 30% 78%;
+    --ring: 221 64% 48%;
+    --radius: 0.75rem;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    /* compensa a navbar fixa ao rolar para âncoras */
+    scroll-padding-top: 5.5rem;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+
+  body {
+    @apply bg-background font-sans text-foreground antialiased;
+    font-feature-settings: 'kern', 'liga';
+  }
+
+  :focus-visible {
+    @apply outline-none ring-2 ring-brand-blue ring-offset-2 ring-offset-white;
+  }
+
+  ::selection {
+    @apply bg-brand-blue text-white;
+  }
+}
+
+@layer components {
+  /* Título de seção: parte escura + destaque azul, como no Figma */
+  .section-title {
+    @apply text-center font-display text-title font-bold text-brand-navy;
+  }
+
+  .glass {
+    @apply border border-white/40 bg-white/20 backdrop-blur-xl;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+  .text-pretty {
+    text-wrap: pretty;
+  }
+}

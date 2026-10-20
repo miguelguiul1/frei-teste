@@ -1,0 +1,14 @@
+node_modules
+dist
+dist-ssr
+*.local
+*.tsbuildinfo
+
+# Variáveis de ambiente (nunca versionar)
+.env
+.env.*
+!.env.example
+
+.vercel
+.DS_Store
+*.log
