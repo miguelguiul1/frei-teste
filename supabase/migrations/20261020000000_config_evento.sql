@@ -33,6 +33,8 @@ begin
 end;
 $$;
 
+revoke all on function public.config_evento_touch() from public, anon, authenticated;
+
 drop trigger if exists config_evento_touch on public.config_evento;
 create trigger config_evento_touch
   before update on public.config_evento

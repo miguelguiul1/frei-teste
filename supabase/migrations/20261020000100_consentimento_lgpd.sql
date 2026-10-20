@@ -57,3 +57,7 @@ create policy "Somente administradores apagam inscrições"
   for delete
   to authenticated
   using ((select public.is_admin()));
+
+-- Reforço: o Supabase concede privilégios padrão a anon/authenticated em tabelas novas.
+-- A tabela admins só é gerenciada pelo SQL Editor (a RLS já bloqueia; isto remove até a permissão).
+revoke all on table public.admins from anon, authenticated;
