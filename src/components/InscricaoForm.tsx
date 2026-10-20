@@ -32,6 +32,18 @@ const fieldA11y = (id: string, error?: string) => ({
   'aria-describedby': error ? errorId(id) : undefined,
 })
 
+/** Traduz o erro do envio para uma mensagem amigável. */
+function mensagemDeErro(err: unknown) {
+  if (err instanceof SupabaseNotConfiguredError) {
+    return 'O sistema de inscrições ainda não foi configurado. Tente novamente mais tarde.'
+  }
+  // P0001 = limite antispam do banco (ver supabase/migrations)
+  if (typeof err === 'object' && err && 'code' in err && err.code === 'P0001' && 'message' in err) {
+    return String(err.message)
+  }
+  return 'Verifique sua conexão e tente novamente. Se o problema continuar, fale com a secretaria.'
+}
+
 type SelectFieldName = 'escolaridade' | 'curso_interesse' | 'como_soube' | 'previsao_chegada'
 
 export function InscricaoForm() {
@@ -83,12 +95,7 @@ export function InscricaoForm() {
       toast.success('Inscrição enviada!', { description: `Esperamos você em ${evento.diaMes}.` })
     } catch (err) {
       console.error('[inscricao]', err)
-      toast.error('Não foi possível enviar sua inscrição', {
-        description:
-          err instanceof SupabaseNotConfiguredError
-            ? 'O sistema de inscrições ainda não foi configurado. Tente novamente mais tarde.'
-            : 'Verifique sua conexão e tente novamente. Se o problema continuar, fale com a secretaria.',
-      })
+      toast.error('Não foi possível enviar sua inscrição', { description: mensagemDeErro(err) })
     }
   }
 
