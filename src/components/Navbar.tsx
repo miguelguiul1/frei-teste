@@ -63,7 +63,7 @@ export function Navbar() {
       >
         Pular para o conteúdo
       </a>
-      <nav aria-label="Principal" className="container flex h-[4.5rem] items-center justify-between gap-6 lg:h-[5.5rem]">
+      <nav aria-label="Principal" className="container flex h-[4.5rem] items-center justify-between gap-6 lg:h-[5.5rem] xl:px-[3.75rem]">
         <a href={hrefFor('inicio')} className="shrink-0 rounded-full" aria-label="Início - 6ª Feira das Profissões">
           <Logo className="h-12 lg:h-16" />
         </a>

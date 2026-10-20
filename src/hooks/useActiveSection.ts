@@ -8,18 +8,30 @@ export function useActiveSection(ids: string[]) {
     const elements = ids.map((id) => document.getElementById(id)).filter((el): el is HTMLElement => !!el)
     if (!elements.length) return
 
-    const visible = new Map<string, number>()
+    const visible = new Map<string, boolean>()
+    const atBottom = () => window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4
+
+    const update = () => {
+      // no fim da página a última seção (rodapé/contato) nunca chega ao centro da tela
+      if (atBottom()) return setActive(ids[ids.length - 1])
+      const current = ids.find((id) => visible.get(id))
+      if (current) setActive(current)
+    }
+
     const observer = new IntersectionObserver(
       (entries) => {
-        entries.forEach((entry) => visible.set(entry.target.id, entry.isIntersecting ? entry.intersectionRatio : 0))
-        // escolhe a primeira seção (na ordem do menu) que está ocupando a faixa central da tela
-        const current = ids.find((id) => (visible.get(id) ?? 0) > 0)
-        if (current) setActive(current)
+        entries.forEach((entry) => visible.set(entry.target.id, entry.isIntersecting))
+        update()
       },
-      { rootMargin: '-45% 0px -50% 0px', threshold: [0, 0.01] },
+      // considera "ativa" a seção que cruza a faixa central da tela
+      { rootMargin: '-45% 0px -50% 0px' },
     )
     elements.forEach((el) => observer.observe(el))
-    return () => observer.disconnect()
+    window.addEventListener('scroll', update, { passive: true })
+    return () => {
+      observer.disconnect()
+      window.removeEventListener('scroll', update)
+    }
   }, [ids])
 
   return active

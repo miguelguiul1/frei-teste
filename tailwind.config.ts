@@ -12,7 +12,7 @@ export default {
     container: {
       center: true,
       padding: { DEFAULT: '1.25rem', sm: '1.5rem', lg: '3rem', xl: '5rem' },
-      screens: { '2xl': '1440px' },
+      screens: { sm: '640px', md: '768px', lg: '1024px', xl: '1280px', '2xl': '1440px' },
     },
     extend: {
       colors: {
@@ -78,10 +78,13 @@ export default {
         'card-hover': '0 12px 28px rgba(4, 42, 126, 0.24)',
       },
       backgroundImage: {
+        // degradês amostrados no frame Landing Page
         'grad-sky': 'linear-gradient(180deg, #D8EFFF 0%, #FFFFFF 100%)',
-        'grad-why': 'linear-gradient(180deg, #FFFFFF 0%, #7293D8 55%, #042A7E 100%)',
+        'grad-programacao':
+          'linear-gradient(180deg, #4F71AC 0%, #B4CEE9 22%, #DBF0FF 36%, #F8FCFF 75%, #FFFFFF 100%)',
+        'grad-why': 'linear-gradient(180deg, #FBFCFD 0%, #CAD2E3 25%, #7086B6 50%, #2F4F94 75%, #042A7E 100%)',
         'grad-icon': 'linear-gradient(180deg, #2C5EC9 0%, #042A7E 100%)',
-        'grad-card-blue': 'linear-gradient(160deg, #8FA9E2 0%, #2C5EC9 100%)',
+        'grad-card-blue': 'linear-gradient(165deg, #92AADF 0%, #5A81D3 45%, #2C5EC9 100%)',
         'grad-parceiros': 'linear-gradient(180deg, #042A7E 0%, #2C5EC9 100%)',
       },
       keyframes: {

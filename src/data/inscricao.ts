@@ -23,4 +23,4 @@ export const opcoesComoSoube = [
   'Outro',
 ] as const
 
-export const opcoesChegada = faixasDeChegada
+export const opcoesChegada = faixasDeChegada as [string, ...string[]]
