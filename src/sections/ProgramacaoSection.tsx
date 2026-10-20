@@ -3,8 +3,9 @@ import { MdConfirmationNumber, MdPinDrop } from 'react-icons/md'
 
 import { Reveal } from '@/components/Reveal'
 import { SectionHeading } from '@/components/SectionHeading'
-import { evento } from '@/config/evento'
+import { evento, eventoEncerrado, inscricoesAbertas } from '@/config/evento'
 import { programacao } from '@/data/programacao'
+import { cn } from '@/lib/utils'
 
 /** Ícone de calendário com o dia do evento (vem de src/config/evento.ts). */
 function CalendarDayIcon() {
@@ -34,7 +35,8 @@ function ComoChegarCard() {
       className="rounded-card bg-grad-card-blue px-6 pb-10 pt-12 text-white shadow-card lg:px-6"
     >
       <h3 id="como-chegar-titulo" className="text-center text-[2rem] font-semibold leading-tight lg:text-[2.25rem]">
-        Como chegar na <span className="text-brand-navy">{evento.edicao}ª Feira das Profissões</span>?
+        {eventoEncerrado ? 'Onde aconteceu a' : 'Como chegar na'}{' '}
+        <span className="text-brand-navy">{evento.edicao}ª Feira das Profissões</span>?
       </h3>
 
       <div className="mt-10 overflow-hidden rounded-xl bg-white shadow-figma">
@@ -59,7 +61,9 @@ function ComoChegarCard() {
       <ul className="mt-10 space-y-10">
         {evento.gratuito && (
           <InfoItem icon={<MdConfirmationNumber className="h-9 w-9" aria-hidden />}>
-            <p className="text-[1.625rem] font-medium leading-tight">Evento Gratuito</p>
+            <p className="text-[1.625rem] font-medium leading-tight">
+              {eventoEncerrado ? 'Foi um evento gratuito' : 'Evento Gratuito'}
+            </p>
           </InfoItem>
         )}
         <InfoItem icon={<CalendarDayIcon />}>
@@ -82,12 +86,24 @@ export function ProgramacaoSection() {
     <section
       id="programacao"
       aria-labelledby="programacao-titulo"
-      className="relative z-10 bg-grad-programacao pb-section pt-section lg:pb-0"
+      className={cn('relative z-10 bg-grad-programacao pb-section pt-section', inscricoesAbertas && 'lg:pb-0')}
     >
       <div className="container">
-        <SectionHeading id="programacao-titulo" highlight="Feira">
-          Programação da
-        </SectionHeading>
+        {eventoEncerrado ? (
+          <>
+            <SectionHeading id="programacao-titulo" highlight="programação">
+              Como foi a
+            </SectionHeading>
+            <p className="mx-auto mt-4 max-w-2xl text-center text-body-lg text-brand-navy">
+              No dia {evento.dataCurta}, cada sala recebeu uma área do Instituto. Veja o que os visitantes puderam
+              conhecer:
+            </p>
+          </>
+        ) : (
+          <SectionHeading id="programacao-titulo" highlight="Feira">
+            Programação da
+          </SectionHeading>
+        )}
 
         <div className="mt-14 grid gap-14 lg:mt-20 lg:grid-cols-[minmax(0,1fr)_22.75rem] lg:gap-16">
           <ol className="relative" aria-label="Áreas e salas da feira">
@@ -114,8 +130,8 @@ export function ProgramacaoSection() {
             ))}
           </ol>
 
-          {/* No desktop o card avança sobre a seção do formulário, como no Figma */}
-          <Reveal delay={150} className="lg:-mb-[26rem]">
+          {/* Com inscrições abertas, no desktop o card avança sobre a seção do formulário, como no Figma */}
+          <Reveal delay={150} className={inscricoesAbertas ? 'lg:-mb-[26rem]' : undefined}>
             <ComoChegarCard />
           </Reveal>
         </div>

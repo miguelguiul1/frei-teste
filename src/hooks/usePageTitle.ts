@@ -1,9 +1,10 @@
 import { useEffect } from 'react'
 
-const BASE = '6ª Feira das Profissões do Frei'
+import { evento } from '@/config/evento'
+import { seo } from '@/config/seo'
 
 export function usePageTitle(title?: string) {
   useEffect(() => {
-    document.title = title ? `${title} | ${BASE}` : `${BASE} | Instituto Social Nossa Senhora de Fátima`
+    document.title = title ? `${title} | ${evento.nome}` : seo.title
   }, [title])
 }

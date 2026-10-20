@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { evento } from '@/config/evento'
+import { evento, inscricoesAbertas } from '@/config/evento'
 import { opcoesChegada, opcoesComoSoube, opcoesCurso, opcoesEscolaridade } from '@/data/inscricao'
 import {
   inscricaoDefaults,
@@ -73,6 +73,8 @@ export function InscricaoForm() {
   }, [enviado])
 
   const onSubmit = async (values: InscricaoFormValues) => {
+    // trava extra: com o evento encerrado nenhum envio sai do navegador (o banco também recusa)
+    if (!inscricoesAbertas) return
     // honeypot preenchido ou envio instantâneo = robô: finge sucesso e não grava nada
     if (values.website || Date.now() - montadoEm.current < TEMPO_MINIMO_MS) {
       setEnviado(true)
