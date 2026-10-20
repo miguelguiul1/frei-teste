@@ -9,6 +9,7 @@ import NotFoundPage from '@/pages/NotFoundPage'
 // área administrativa carregada sob demanda (não pesa na landing)
 const AdminLoginPage = lazy(() => import('@/pages/AdminLoginPage'))
 const AdminDashboardPage = lazy(() => import('@/pages/AdminDashboardPage'))
+const PrivacidadePage = lazy(() => import('@/pages/PrivacidadePage'))
 
 function PageFallback() {
   return (
@@ -26,6 +27,7 @@ export default function App() {
       <Suspense fallback={<PageFallback />}>
         <Routes>
           <Route path="/" element={<HomePage />} />
+          <Route path="/privacidade" element={<PrivacidadePage />} />
           <Route path="/admin/login" element={<AdminLoginPage />} />
           <Route path="/admin" element={<AdminDashboardPage />} />
           <Route path="*" element={<NotFoundPage />} />

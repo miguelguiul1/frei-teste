@@ -29,6 +29,10 @@ export const inscricaoSchema = z.object({
   curso_interesse: z.enum(opcoesCurso, { error: 'Selecione o curso de seu interesse.' }),
   como_soube: opcional(opcoesComoSoube, 'Opção inválida.'),
   previsao_chegada: opcional(opcoesChegada, 'Opção inválida.'),
+  /** LGPD: aceite obrigatório do uso dos dados */
+  consentimento: z
+    .boolean()
+    .refine((v) => v === true, 'Para enviar, é preciso concordar com o uso dos seus dados.'),
   /** honeypot: campo invisível que só robôs preenchem */
   website: z.string().optional(),
 })
@@ -45,6 +49,7 @@ export const inscricaoDefaults: InscricaoFormInput = {
   curso_interesse: '' as InscricaoFormInput['curso_interesse'],
   como_soube: '',
   previsao_chegada: '',
+  consentimento: false,
   website: '',
 }
 
@@ -59,5 +64,7 @@ export function toInsert(values: InscricaoFormValues) {
     curso_interesse: values.curso_interesse,
     como_soube: values.como_soube || null,
     previsao_chegada: values.previsao_chegada || null,
+    // o horário do aceite (consentimento_em) é gravado pelo banco
+    consentimento: values.consentimento,
   }
 }

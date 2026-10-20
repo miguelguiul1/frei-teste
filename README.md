@@ -4,7 +4,8 @@ Site da **6ª Feira das Profissões do Frei**, do Instituto Social Nossa Senhora
 
 - **Landing page** (`/`): página única com rolagem suave e menu por âncoras.
 - **Login administrativo** (`/admin/login`): e-mail e senha pelo Supabase Auth.
-- **Painel** (`/admin`): rota protegida com as inscrições recebidas, busca, filtro por curso e exportação em CSV.
+- **Painel** (`/admin`): rota protegida com as inscrições recebidas, busca, filtro por curso, exportação em CSV e exclusão individual (pedidos LGPD).
+- **Privacidade** (`/privacidade`): política de privacidade em linguagem simples.
 
 Stack: React 18 + TypeScript + Vite, Tailwind CSS 3 (tokens do Figma) + shadcn/ui, react-hook-form + zod, Supabase (banco + auth), deploy na Vercel.
 
@@ -39,9 +40,28 @@ pnpm dev               # http://localhost:5173
 
 ---
 
-## Data, horário e local do evento
+## Data, horário e status do evento
 
-Ficam **somente** em [`src/config/evento.ts`](src/config/evento.ts). Ao mudar a data (`data: '2026-09-19'`) ou o horário (`horaInicio`, `horaFim`), o site inteiro se atualiza: card "Como chegar", footer, mensagem de sucesso e as opções de "Previsão de chegada" do formulário.
+Ficam **somente** em [`src/config/evento.ts`](src/config/evento.ts): `data`, `horaInicio`, `horaFim` e `statusEvento`. O site inteiro lê desse arquivo: hero, menu, programação, card "Como chegar"/"Onde aconteceu", formulário, footer e as meta tags (title, description e Open Graph), que são geradas no build por [`src/config/seo.ts`](src/config/seo.ts).
+
+| `statusEvento` | Como o site fica |
+| -------------- | ---------------- |
+| `"encerrado"` (atual) | Hero com o selo "Evento realizado em 19/09/2026" e os botões "Ver como foi" e "Conheça os cursos". A galeria e os depoimentos vêm logo após o hero. "Inscrição" sai do menu, o formulário é trocado por um aviso de inscrições encerradas e a programação aparece como "Como foi a programação". |
+| `"aberto"` | O comportamento original: convite para participar, menu "Inscrição" e formulário. |
+
+### Próxima edição (checklist)
+
+1. Em `src/config/evento.ts`: troque `edicao`, `data`, `horaInicio`/`horaFim` e `statusEvento: 'aberto'`.
+2. No **SQL Editor** do Supabase, reabra as inscrições também no banco:
+
+   ```sql
+   update public.config_evento set inscricoes_abertas = true where id = 1;
+   ```
+
+   Para fechar depois do evento: `update public.config_evento set inscricoes_abertas = false where id = 1;`
+3. Atualize as fotos da galeria e os depoimentos.
+
+> O banco tem um interruptor próprio (`config_evento.inscricoes_abertas`) para que o fechamento valha mesmo para quem chama a API diretamente, sem passar pelo site. Por isso os dois passos são necessários.
 
 Os contatos (Instagram e telefones) ficam em [`src/config/site.ts`](src/config/site.ts).
 
@@ -59,18 +79,31 @@ Os contatos (Instagram e telefones) ficam em [`src/config/site.ts`](src/config/s
 | Parceiros (`destaque: true` aparece na versão resumida) | `src/data/parceiros.ts` |
 | Opções dos selects do formulário | `src/data/inscricao.ts`       |
 
+## Privacidade (LGPD)
+
+- O formulário tem um **checkbox obrigatório** de consentimento, com link para `/privacidade`, e um aviso para menores de 18 anos.
+- O banco **recusa** inscrições sem `consentimento = true` e grava a data do aceite em `consentimento_em`.
+- Pedidos de exclusão são atendidos no painel `/admin`: botão de lixeira na linha, com confirmação.
+- O responsável pelos dados, o CNPJ e o prazo de guarda ficam em [`src/config/privacidade.ts`](src/config/privacidade.ts), marcados com `TODO(escola)` para a escola confirmar. O texto da página fica em `src/pages/PrivacidadePage.tsx`.
+
 ---
 
 ## Supabase
 
-### 1. Aplicar a migration
+### 1. Aplicar as migrations
 
-O SQL está em [`supabase/migrations/20260901000000_create_inscricoes.sql`](supabase/migrations/20260901000000_create_inscricoes.sql). Escolha **uma** das opções:
+Os arquivos ficam em [`supabase/migrations/`](supabase/migrations) e devem ser aplicados **em ordem**:
+
+1. `20260901000000_create_inscricoes.sql`: cria a tabela `inscricoes`, a tabela `admins`, a RLS e o antispam;
+2. `20261020000000_config_evento.sql`: cria a tabela `config_evento` e passa a aceitar INSERT só com as inscrições abertas;
+3. `20261020000100_consentimento_lgpd.sql`: cria as colunas `consentimento` e `consentimento_em`, exige consentimento no INSERT e permite DELETE só para admins.
+
+Escolha **uma** das opções:
 
 **Opção A: pelo painel (mais simples)**
 
 1. Abra o projeto em <https://supabase.com/dashboard> e vá em **SQL Editor > New query**.
-2. Cole o conteúdo do arquivo de migration e clique em **Run**.
+2. Cole o conteúdo de cada arquivo, na ordem acima, e clique em **Run**.
 
 **Opção B: pela Supabase CLI**
 
@@ -80,22 +113,23 @@ npx supabase link --project-ref SEU_PROJECT_REF
 npx supabase db push
 ```
 
-A migration pode ser executada mais de uma vez sem causar erro. Ela cria:
+As migrations podem ser executadas mais de uma vez sem causar erro. Ao final, o banco fica assim:
 
-- **`inscricoes`**: `id`, `created_at`, `nome`, `telefone` (só dígitos), `email`, `escolaridade`, `ex_aluno` (bool), `curso_interesse`, `como_soube`, `previsao_chegada`, com validações (`check`).
-- **RLS ativada**:
-  - visitantes (`anon`) podem apenas fazer **INSERT**, e só nas colunas do formulário;
-  - **SELECT** só para usuários **autenticados que sejam administradores**;
-  - não existe UPDATE/DELETE pela API.
-- **`admins`** e a função `is_admin()`: a lista de quem pode ler as inscrições.
+- **`inscricoes`**: `id`, `created_at`, `nome`, `telefone` (só dígitos), `email`, `escolaridade`, `ex_aluno` (bool), `curso_interesse`, `como_soube`, `previsao_chegada`, `consentimento` (bool) e `consentimento_em` (gravado pelo banco), com validações (`check`).
+- **RLS ativada** em `inscricoes`, `admins` e `config_evento`:
+  - visitantes (`anon`) podem apenas fazer **INSERT** em `inscricoes`, só nas colunas do formulário, e **somente** com `config_evento.inscricoes_abertas = true` e `consentimento = true`;
+  - **SELECT** e **DELETE** em `inscricoes` só para usuários **autenticados que sejam administradores**;
+  - não existe UPDATE pela API, e `config_evento` e `admins` não são acessíveis pela API (só pelo SQL Editor).
+- **`admins`** e a função `is_admin()`: a lista de quem pode ler e apagar as inscrições.
 - **Antispam no servidor**: um trigger que normaliza o e-mail e recusa mais de 3 inscrições com o mesmo e-mail a cada 10 minutos.
 
 > **Por que existe a tabela `admins`?** Liberar o SELECT para *qualquer* usuário autenticado é arriscado: com a anon key pública, qualquer pessoa poderia criar uma conta pela API (se o cadastro estiver aberto) e ler os dados pessoais dos inscritos. Com `admins`, só as contas que você promover têm acesso.
 
 ### 2. Criar o usuário administrador
 
-1. **Authentication > Users > Add user > Create new user**: informe o e-mail e a senha e marque *Auto Confirm User*.
-2. No **SQL Editor**, rode o conteúdo de [`supabase/seed_admin.example.sql`](supabase/seed_admin.example.sql), trocando o e-mail.
+1. **Authentication > Users > Add user > Create new user**: informe o seu e-mail e uma **senha forte** (gerenciador de senhas, 16 caracteres ou mais) e marque *Auto Confirm User*.
+2. No **SQL Editor**, cole o conteúdo de [`supabase/seed_admin.example.sql`](supabase/seed_admin.example.sql), troque `seu-email@exemplo.com.br` pelo e-mail do passo 1 e clique em **Run**. O resultado deve listar o seu e-mail.
+3. Entre em `/admin/login` com esse e-mail e senha.
 
 ### 3. Recomendado: bloquear novos cadastros
 

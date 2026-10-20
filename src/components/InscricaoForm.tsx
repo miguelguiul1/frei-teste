@@ -1,7 +1,8 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { CheckCircle2, Loader2 } from 'lucide-react'
+import { AlertCircle, CheckCircle2, Info, Loader2 } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
+import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
 
 import { FormField } from '@/components/FormField'
@@ -40,6 +41,10 @@ function mensagemDeErro(err: unknown) {
   // P0001 = limite antispam do banco (ver supabase/migrations)
   if (typeof err === 'object' && err && 'code' in err && err.code === 'P0001' && 'message' in err) {
     return String(err.message)
+  }
+  // 42501 = recusado pela RLS: inscrições fechadas no banco (config_evento) ou sem consentimento
+  if (typeof err === 'object' && err && 'code' in err && err.code === '42501') {
+    return 'As inscrições não estão abertas no momento. Fale com a secretaria para mais informações.'
   }
   return 'Verifique sua conexão e tente novamente. Se o problema continuar, fale com a secretaria.'
 }
@@ -254,6 +259,43 @@ export function InscricaoForm() {
       <div aria-hidden className="absolute -left-[9999px] h-px w-px overflow-hidden">
         <label htmlFor="f-website">Não preencha este campo</label>
         <input id="f-website" type="text" tabIndex={-1} autoComplete="off" {...register('website')} />
+      </div>
+
+      <div className="space-y-3 border-t border-brand-sky pt-5">
+        <p className="flex gap-2 rounded-md bg-brand-sky/60 px-3 py-2 text-sm text-brand-navy">
+          <Info className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
+          Menores de 18 anos: faça a inscrição com a ciência do seu pai, mãe ou responsável.
+        </p>
+        <div>
+          <label htmlFor="f-consentimento" className="flex cursor-pointer items-start gap-3 text-sm leading-snug text-brand-ink">
+            <input
+              type="checkbox"
+              {...register('consentimento')}
+              {...fieldA11y('f-consentimento', errors.consentimento?.message)}
+              aria-required
+              className="mt-0.5 h-5 w-5 shrink-0 cursor-pointer rounded border-2 border-brand-navy/60 accent-brand-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue focus-visible:ring-offset-2"
+            />
+            <span>
+              Li e concordo com o uso dos meus dados para contato sobre a Feira das Profissões.
+              <span aria-hidden>*</span>{' '}
+              <Link
+                to="/privacidade"
+                target="_blank"
+                rel="noopener"
+                className="font-medium text-brand-blue underline underline-offset-2 hover:text-brand-navy"
+              >
+                Ver política de privacidade
+                <span className="sr-only"> (abre em nova aba)</span>
+              </Link>
+            </span>
+          </label>
+          {errors.consentimento?.message && (
+            <p id={errorId('f-consentimento')} role="alert" className="mt-1.5 flex items-start gap-1.5 text-sm font-medium text-destructive">
+              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
+              {errors.consentimento.message}
+            </p>
+          )}
+        </div>
       </div>
 
       <div className="flex justify-center pt-3">

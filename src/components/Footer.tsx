@@ -1,3 +1,5 @@
+import { Link } from 'react-router-dom'
+
 import { evento } from '@/config/evento'
 import { site } from '@/config/site'
 import { navItems } from '@/data/navigation'
@@ -93,7 +95,10 @@ export function Footer() {
       </div>
       <div className="border-t border-white/15">
         <p className="container py-5 text-center text-sm text-white/90">
-          © {evento.ano} Todos os direitos reservados para {site.nome}.
+          © {evento.ano} Todos os direitos reservados para {site.nome}.{' '}
+          <Link to="/privacidade" className="whitespace-nowrap underline underline-offset-4 hover:text-white">
+            Política de privacidade
+          </Link>
         </p>
       </div>
     </footer>

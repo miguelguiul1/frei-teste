@@ -10,9 +10,11 @@ export type InscricaoRow = {
   curso_interesse: string
   como_soube: string | null
   previsao_chegada: string | null
+  consentimento: boolean
+  consentimento_em: string | null
 }
 
-export type InscricaoInsert = Omit<InscricaoRow, 'id' | 'created_at'>
+export type InscricaoInsert = Omit<InscricaoRow, 'id' | 'created_at' | 'consentimento_em'>
 
 export type Database = {
   public: {
@@ -27,6 +29,7 @@ export type Database = {
     Views: { [_ in never]: never }
     Functions: {
       is_admin: { Args: never; Returns: boolean }
+      inscricoes_abertas: { Args: never; Returns: boolean }
     }
     Enums: { [_ in never]: never }
     CompositeTypes: { [_ in never]: never }

@@ -24,3 +24,11 @@ export async function checkIsAdmin(): Promise<boolean> {
   if (error) throw error
   return Boolean(data)
 }
+
+/** Apaga uma inscrição (pedido de exclusão, LGPD). Só funciona para administradores (RLS). */
+export async function deleteInscricao(id: string): Promise<void> {
+  const { data, error } = await getSupabase().from('inscricoes').delete().eq('id', id).select('id')
+  if (error) throw error
+  // a RLS não gera erro quando bloqueia: apenas não apaga nenhuma linha
+  if (!data?.length) throw new Error('Nenhuma inscrição foi apagada. Verifique se você é administrador.')
+}

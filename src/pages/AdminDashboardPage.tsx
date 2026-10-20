@@ -1,5 +1,5 @@
 import type { Session } from '@supabase/supabase-js'
-import { Download, LogOut, RefreshCw, Search, ShieldAlert, Users } from 'lucide-react'
+import { Download, Loader2, LogOut, RefreshCw, Search, ShieldAlert, Trash2, Users } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
@@ -7,6 +7,7 @@ import { toast } from 'sonner'
 import { Logo } from '@/components/Logo'
 import { RequireAuth } from '@/components/RequireAuth'
 import { Button } from '@/components/ui/button'
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { opcoesCurso } from '@/data/inscricao'
@@ -14,11 +15,25 @@ import { usePageTitle } from '@/hooks/usePageTitle'
 import { toCsv, downloadFile, type CsvColumn } from '@/lib/csv'
 import type { InscricaoRow } from '@/lib/database.types'
 import { formatDateTime, normalize } from '@/lib/format'
-import { checkIsAdmin, fetchInscricoes } from '@/lib/inscricoes'
+import { checkIsAdmin, deleteInscricao, fetchInscricoes } from '@/lib/inscricoes'
 import { formatPhoneBR } from '@/lib/phone'
 import { getSupabase } from '@/lib/supabase'
 
 const TODOS = '__todos__'
+
+const COLUNAS = [
+  'Data',
+  'Nome',
+  'Telefone',
+  'E-mail',
+  'Escolaridade',
+  'Ex-aluno',
+  'Curso de interesse',
+  'Como soube',
+  'Chegada',
+  'Consentimento',
+  'Ações',
+] as const
 
 type Status = 'loading' | 'ready' | 'error' | 'forbidden'
 
@@ -32,7 +47,55 @@ const csvColumns: CsvColumn<InscricaoRow>[] = [
   { header: 'Curso de interesse', value: (r) => r.curso_interesse },
   { header: 'Como soube', value: (r) => r.como_soube },
   { header: 'Previsão de chegada', value: (r) => r.previsao_chegada },
+  { header: 'Consentimento (LGPD)', value: (r) => (r.consentimento ? 'Sim' : 'Não') },
+  { header: 'Consentimento em', value: (r) => (r.consentimento_em ? formatDateTime(r.consentimento_em) : '') },
 ]
+
+/** Confirmação antes de apagar uma inscrição (pedido de exclusão). */
+function ConfirmarExclusao({
+  inscricao,
+  onCancel,
+  onConfirm,
+}: {
+  inscricao: InscricaoRow | null
+  onCancel: () => void
+  onConfirm: (inscricao: InscricaoRow) => Promise<void>
+}) {
+  const [apagando, setApagando] = useState(false)
+
+  const confirmar = async () => {
+    if (!inscricao) return
+    setApagando(true)
+    try {
+      await onConfirm(inscricao)
+    } finally {
+      setApagando(false)
+    }
+  }
+
+  return (
+    <Dialog open={inscricao !== null} onOpenChange={(open) => !open && !apagando && onCancel()}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>Apagar inscrição?</DialogTitle>
+          <DialogDescription>
+            A inscrição de <strong className="text-brand-navy">{inscricao?.nome}</strong> ({inscricao?.email}) será
+            apagada permanentemente. Use esta opção para atender pedidos de exclusão de dados. Não é possível desfazer.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="mt-2 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+          <Button variant="outline" onClick={onCancel} disabled={apagando}>
+            Cancelar
+          </Button>
+          <Button variant="destructive" onClick={() => void confirmar()} disabled={apagando}>
+            {apagando ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <Trash2 className="h-4 w-4" aria-hidden />}
+            {apagando ? 'Apagando…' : 'Apagar inscrição'}
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  )
+}
 
 function StatCard({ label, value, small }: { label: string; value: string | number; small?: boolean }) {
   return (
@@ -49,6 +112,21 @@ function Dashboard({ session }: { session: Session }) {
   const [rows, setRows] = useState<InscricaoRow[]>([])
   const [busca, setBusca] = useState('')
   const [curso, setCurso] = useState(TODOS)
+  const [paraApagar, setParaApagar] = useState<InscricaoRow | null>(null)
+
+  const apagar = async (inscricao: InscricaoRow) => {
+    try {
+      await deleteInscricao(inscricao.id)
+      setRows((atual) => atual.filter((r) => r.id !== inscricao.id))
+      setParaApagar(null)
+      toast.success(`Inscrição de ${inscricao.nome} apagada.`)
+    } catch (err) {
+      console.error('[admin] apagar', err)
+      toast.error('Não foi possível apagar a inscrição.', {
+        description: err instanceof Error ? err.message : undefined,
+      })
+    }
+  }
 
   const carregar = useCallback(async () => {
     setStatus('loading')
@@ -197,30 +275,28 @@ function Dashboard({ session }: { session: Session }) {
               </p>
 
               <div className="mt-2 overflow-x-auto rounded-lg border border-brand-sky">
-                <table className="w-full min-w-[60rem] border-collapse text-left text-sm">
+                <table className="w-full min-w-[72rem] border-collapse text-left text-sm">
                   <thead className="bg-brand-sky/60 text-brand-navy">
                     <tr>
-                      {['Data', 'Nome', 'Telefone', 'E-mail', 'Escolaridade', 'Ex-aluno', 'Curso de interesse', 'Como soube', 'Chegada'].map(
-                        (h) => (
-                          <th key={h} scope="col" className="whitespace-nowrap px-3 py-3 font-semibold">
-                            {h}
-                          </th>
-                        ),
-                      )}
+                      {COLUNAS.map((h) => (
+                        <th key={h} scope="col" className="whitespace-nowrap px-3 py-3 font-semibold">
+                          {h === 'Ações' ? <span className="sr-only">Ações</span> : h}
+                        </th>
+                      ))}
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-brand-sky">
                     {status === 'loading' &&
                       Array.from({ length: 5 }, (_, i) => (
                         <tr key={i}>
-                          <td colSpan={9} className="px-3 py-3">
+                          <td colSpan={COLUNAS.length} className="px-3 py-3">
                             <span className="block h-4 animate-pulse rounded bg-brand-sky/70" />
                           </td>
                         </tr>
                       ))}
                     {status === 'error' && (
                       <tr>
-                        <td colSpan={9} className="px-3 py-10 text-center text-destructive">
+                        <td colSpan={COLUNAS.length} className="px-3 py-10 text-center text-destructive">
                           Não foi possível carregar as inscrições.{' '}
                           <button type="button" className="font-semibold underline" onClick={() => void carregar()}>
                             Tentar novamente
@@ -230,7 +306,7 @@ function Dashboard({ session }: { session: Session }) {
                     )}
                     {status === 'ready' && filtradas.length === 0 && (
                       <tr>
-                        <td colSpan={9} className="px-3 py-12 text-center text-brand-navy/70">
+                        <td colSpan={COLUNAS.length} className="px-3 py-12 text-center text-brand-navy/70">
                           <Users className="mx-auto mb-2 h-8 w-8 text-brand-blue/60" aria-hidden />
                           {rows.length === 0 ? 'Nenhuma inscrição recebida ainda.' : 'Nenhuma inscrição encontrada com esses filtros.'}
                         </td>
@@ -258,6 +334,28 @@ function Dashboard({ session }: { session: Session }) {
                           <td className="px-3 py-2.5">{r.curso_interesse}</td>
                           <td className="px-3 py-2.5">{r.como_soube ?? '—'}</td>
                           <td className="whitespace-nowrap px-3 py-2.5">{r.previsao_chegada ?? '—'}</td>
+                          <td className="whitespace-nowrap px-3 py-2.5">
+                            {r.consentimento ? (
+                              <span title={r.consentimento_em ? `Aceito em ${formatDateTime(r.consentimento_em)}` : undefined}>
+                                Sim
+                                {r.consentimento_em && (
+                                  <span className="block text-xs text-brand-navy/60">{formatDateTime(r.consentimento_em)}</span>
+                                )}
+                              </span>
+                            ) : (
+                              <span className="text-brand-navy/60">Não</span>
+                            )}
+                          </td>
+                          <td className="px-3 py-2.5 text-right">
+                            <button
+                              type="button"
+                              onClick={() => setParaApagar(r)}
+                              aria-label={`Apagar inscrição de ${r.nome}`}
+                              className="grid h-9 w-9 place-items-center rounded-full text-brand-navy/60 transition-colors hover:bg-red-50 hover:text-destructive focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue"
+                            >
+                              <Trash2 className="h-4 w-4" aria-hidden />
+                            </button>
+                          </td>
                         </tr>
                       ))}
                   </tbody>
@@ -267,6 +365,8 @@ function Dashboard({ session }: { session: Session }) {
           </>
         )}
       </main>
+
+      <ConfirmarExclusao inscricao={paraApagar} onCancel={() => setParaApagar(null)} onConfirm={apagar} />
     </div>
   )
 }
