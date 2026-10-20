@@ -1,10 +1,26 @@
+import { lazy, Suspense } from 'react'
 import { MdCheckBox } from 'react-icons/md'
 
-import { InscricaoForm } from '@/components/InscricaoForm'
 import { Logo } from '@/components/Logo'
 import { Reveal } from '@/components/Reveal'
 import { SectionHeading } from '@/components/SectionHeading'
 import { beneficios } from '@/data/beneficios'
+
+// formulário (zod, react-hook-form, Supabase) carregado sob demanda: deixa a primeira dobra mais leve
+const InscricaoForm = lazy(() => import('@/components/InscricaoForm').then((m) => ({ default: m.InscricaoForm })))
+
+function FormSkeleton() {
+  return (
+    <div className="space-y-5" role="status" aria-label="Carregando formulário">
+      {Array.from({ length: 8 }, (_, i) => (
+        <div key={i} className="space-y-2">
+          <span className="block h-4 w-40 animate-pulse rounded bg-brand-sky" />
+          <span className="block h-10 animate-pulse rounded-md bg-brand-sky/60" />
+        </div>
+      ))}
+    </div>
+  )
+}
 
 function OQueVoceGanha() {
   return (
@@ -12,7 +28,7 @@ function OQueVoceGanha() {
       <SectionHeading as="h3" highlight="ganha" suffix=":" size="subtitle">
         O que você
       </SectionHeading>
-      <ul className="mt-6 grid gap-x-8 gap-y-4 sm:grid-flow-col sm:grid-cols-2 sm:grid-rows-3">
+      <ul className="mt-6 grid gap-x-8 gap-y-4 sm:grid-flow-col sm:grid-cols-2 sm:grid-rows-3 sm:pr-12">
         {beneficios.map((item) => (
           <li key={item} className="flex items-center gap-3 text-base font-medium leading-tight text-brand-ink">
             <span className="grid h-11 w-11 shrink-0 place-items-center rounded-md bg-white shadow-figma">
@@ -53,7 +69,9 @@ export function InscricaoSection() {
           >
             Formulário de
           </SectionHeading>
-          <InscricaoForm />
+          <Suspense fallback={<FormSkeleton />}>
+            <InscricaoForm />
+          </Suspense>
         </Reveal>
 
         {/* espaço reservado para o card "Como chegar", que vem da seção anterior no desktop */}

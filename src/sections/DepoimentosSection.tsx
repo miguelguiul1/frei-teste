@@ -10,9 +10,9 @@ import { cn } from '@/lib/utils'
 
 function DepoimentoCard({ depoimento }: { depoimento: Depoimento }) {
   return (
-    <figure className="mx-auto grid max-w-[62rem] items-center gap-0 md:grid-cols-[16.5rem_1fr]">
+    <figure className="mx-auto grid max-w-[62rem] items-center gap-0 lg:grid-cols-[16.5rem_1fr]">
       {/* Foto: bloco navy de onde o ex-aluno "sai" pela parte de cima */}
-      <div className="relative z-10 mx-auto w-52 md:mx-0 md:w-[16.5rem]">
+      <div className="relative z-10 mx-auto w-52 sm:w-60 lg:mx-0 lg:w-[16.5rem]">
         <div className="relative aspect-[266/250] rounded-card bg-brand-navy shadow-figma">
           {/* recorte: a foto inteira apoiada na base do bloco, com a cabeça acima dele */}
           <div className={cn('absolute inset-x-0 bottom-0', depoimento.fotoRecortada ? 'aspect-[332/488]' : 'top-0')}>
@@ -28,9 +28,9 @@ function DepoimentoCard({ depoimento }: { depoimento: Depoimento }) {
         </div>
       </div>
 
-      <div className="relative -mt-8 rounded-card-lg bg-white px-6 pb-8 pt-14 shadow-card sm:px-10 md:-ml-14 md:mt-0 md:py-12 md:pl-[6.5rem] md:pr-12">
-        <Quote className="absolute left-6 top-6 h-8 w-8 text-brand-sky md:left-[4.5rem] md:top-8" aria-hidden />
-        <blockquote className="relative space-y-1 text-[1.0625rem] leading-snug text-brand-ink sm:text-justify md:text-lg">
+      <div className="relative -mt-8 rounded-card-lg bg-white px-6 pb-8 pt-14 shadow-card sm:px-12 lg:-ml-14 lg:mt-0 lg:py-12 lg:pl-[6.5rem] lg:pr-12">
+        <Quote className="absolute left-6 top-6 h-8 w-8 text-brand-sky lg:left-[4.5rem] lg:top-8" aria-hidden />
+        <blockquote className="relative space-y-1 text-[1.0625rem] leading-snug text-brand-ink md:text-lg lg:text-justify">
           {depoimento.texto.map((paragrafo, i) => (
             <p key={i}>
               {i === 0 && '“'}
@@ -59,7 +59,7 @@ export function DepoimentosSection() {
 
         <Reveal className="mt-12 md:mt-16">
           <Carousel label="Depoimentos de ex-alunos" opts={{ loop: true }}>
-            <CarouselContent className="pt-14 md:pt-[4.5rem]">
+            <CarouselContent className="pt-14 sm:pt-16 lg:pt-[4.5rem]">
               {depoimentos.map((d, i) => (
                 <CarouselItem key={d.id} index={i} className="px-1 pb-4">
                   <DepoimentoCard depoimento={d} />
@@ -67,7 +67,7 @@ export function DepoimentosSection() {
               ))}
             </CarouselContent>
 
-            <div className="mx-auto mt-8 flex max-w-[62rem] flex-col items-center gap-6 md:flex-row md:justify-between">
+            <div className="mx-auto mt-8 flex max-w-[62rem] flex-col items-center gap-6 lg:flex-row lg:justify-between">
               <Button asChild size="lg" className="h-[3.6rem] min-w-[16.5rem] text-lg font-semibold">
                 <a href={maisDepoimentosUrl} target="_blank" rel="noopener noreferrer">
                   Mais Depoimentos

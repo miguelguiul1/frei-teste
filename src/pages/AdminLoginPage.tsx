@@ -146,7 +146,7 @@ export default function AdminLoginPage() {
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="inline-flex h-[3.75rem] min-w-[11.6rem] items-center justify-center gap-2 rounded-md bg-white px-6 text-[1.375rem] font-semibold text-[#7F8FBD] shadow-figma transition-all duration-200 ease-out-soft hover:-translate-y-0.5 hover:text-brand-navy hover:shadow-card-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-brand-blue disabled:opacity-70"
+                    className="inline-flex h-[3.75rem] min-w-[11.6rem] items-center justify-center gap-2 rounded-md bg-white px-6 text-[1.375rem] font-semibold text-[#56699F] shadow-figma transition-all duration-200 ease-out-soft hover:-translate-y-0.5 hover:text-brand-navy hover:shadow-card-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-brand-blue disabled:opacity-70"
                   >
                     {isSubmitting && <Loader2 className="h-5 w-5 animate-spin" aria-hidden />}
                     {isSubmitting ? 'Entrando…' : 'Fazer Login'}

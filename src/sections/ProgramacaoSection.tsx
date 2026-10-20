@@ -41,7 +41,7 @@ function ComoChegarCard() {
         <iframe
           title={`Mapa: ${evento.local.nome}`}
           src={evento.mapsEmbedUrl}
-          className="block aspect-[314/260] w-full border-0"
+          className="block aspect-[314/260] w-full border-0 md:aspect-[16/7] lg:aspect-[314/260]"
           loading="lazy"
           referrerPolicy="no-referrer-when-downgrade"
         />

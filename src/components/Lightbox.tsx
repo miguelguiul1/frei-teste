@@ -8,10 +8,12 @@ interface LightboxProps {
   fotos: FotoGaleria[]
   index: number | null
   onIndexChange: (index: number | null) => void
+  /** elemento que recebe o foco de volta ao fechar (a miniatura clicada) */
+  returnFocusTo?: React.RefObject<HTMLElement | null>
 }
 
 /** Visualizador de fotos em tela cheia com navegação por setas (teclado e botões). */
-export function Lightbox({ fotos, index, onIndexChange }: LightboxProps) {
+export function Lightbox({ fotos, index, onIndexChange, returnFocusTo }: LightboxProps) {
   const open = index !== null
   const total = fotos.length
   const go = (delta: number) => index !== null && onIndexChange((index + delta + total) % total)
@@ -33,6 +35,11 @@ export function Lightbox({ fotos, index, onIndexChange }: LightboxProps) {
       <DialogContent
         className="max-w-5xl gap-0 bg-transparent p-0 shadow-none"
         closeClassName="right-2 top-2 bg-white/90 shadow-figma sm:-right-3 sm:-top-3"
+        onCloseAutoFocus={(e) => {
+          if (!returnFocusTo?.current) return
+          e.preventDefault()
+          returnFocusTo.current.focus()
+        }}
       >
         {foto && (
           <figure className="relative">

@@ -1,5 +1,5 @@
 import { Expand } from 'lucide-react'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 
 import { Img } from '@/components/Img'
 import { Lightbox } from '@/components/Lightbox'
@@ -16,14 +16,14 @@ function TradicaoBanner() {
         alt={fotoTradicao.alt}
         loading="lazy"
         decoding="async"
-        className="absolute inset-y-0 right-0 h-full w-full object-cover object-center md:w-[66%]"
+        className="absolute inset-y-0 right-0 h-full w-full object-cover object-center lg:w-[66%]"
       />
       {/* degradê branco que revela a foto da equipe à direita */}
       <div
         aria-hidden
-        className="absolute inset-0 bg-[linear-gradient(180deg,#FFFFFF_38%,rgba(255,255,255,0.6)_55%,rgba(255,255,255,0)_80%)] md:bg-[linear-gradient(90deg,#FFFFFF_36%,rgba(255,255,255,0.75)_46%,rgba(255,255,255,0)_70%)]"
+        className="absolute inset-0 bg-[linear-gradient(180deg,#FFFFFF_38%,rgba(255,255,255,0.6)_55%,rgba(255,255,255,0)_80%)] lg:bg-[linear-gradient(90deg,#FFFFFF_36%,rgba(255,255,255,0.75)_46%,rgba(255,255,255,0)_70%)]"
       />
-      <div className="relative px-6 pb-48 pt-10 sm:px-14 md:py-16">
+      <div className="relative px-6 pb-48 pt-10 sm:px-14 sm:pb-64 lg:py-16">
         <h2 className="font-display text-[clamp(1.875rem,1.4rem+1.6vw,2.625rem)] font-bold leading-[1.3] text-brand-navy">
           Tradição que
           <br />
@@ -39,6 +39,7 @@ function TradicaoBanner() {
 
 export function UltimaFeiraSection() {
   const [aberta, setAberta] = useState<number | null>(null)
+  const miniaturaRef = useRef<HTMLButtonElement | null>(null)
 
   return (
     <section aria-labelledby="ultima-feira-titulo" className="overflow-hidden bg-brand-navy pb-section pt-6">
@@ -55,7 +56,10 @@ export function UltimaFeiraSection() {
           <li key={foto.src} className="shrink-0 snap-center">
             <button
               type="button"
-              onClick={() => setAberta(i)}
+              onClick={(e) => {
+                miniaturaRef.current = e.currentTarget
+                setAberta(i)
+              }}
               className="group relative block w-[17rem] rounded-card bg-white p-3 shadow-figma transition-transform duration-300 ease-out-soft hover:-translate-y-1.5 hover:rotate-[-0.6deg] sm:w-[21.25rem] sm:p-[0.85rem]"
               aria-label={`Ampliar foto: ${foto.alt}`}
             >
@@ -78,7 +82,7 @@ export function UltimaFeiraSection() {
         ))}
       </ul>
 
-      <Lightbox fotos={galeria} index={aberta} onIndexChange={setAberta} />
+      <Lightbox fotos={galeria} index={aberta} onIndexChange={setAberta} returnFocusTo={miniaturaRef} />
     </section>
   )
 }
