@@ -3,7 +3,7 @@
  * Para a próxima edição, altere APENAS este arquivo: data, horário e `statusEvento`.
  * Todo o site (hero, menu, programação, formulário, footer e meta tags) lê daqui.
  *
- * Observação: o banco também tem um interruptor próprio (tabela `evento_config`,
+ * Observação: o banco também tem um interruptor próprio (tabela `config_evento`,
  * ver supabase/migrations). Ao reabrir as inscrições, atualize os dois.
  */
 
