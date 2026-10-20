@@ -15,6 +15,8 @@ export default {
       screens: { sm: '640px', md: '768px', lg: '1024px', xl: '1280px', '2xl': '1440px' },
     },
     extend: {
+      // breakpoint 2xl = largura do frame do Figma (1440px)
+      screens: { '2xl': '1440px' },
       colors: {
         brand: {
           navy: '#042A7E',
